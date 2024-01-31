@@ -48,8 +48,8 @@ def authenticate(
     if not db_user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Basic"},
+            detail='Incorrect username or password',
+            headers={'WWW-Authenticate': 'Basic'},
         )
 
     # authenticate password
@@ -60,8 +60,8 @@ def authenticate(
     if not is_correct_password:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Basic"},
+            detail='Incorrect username or password',
+            headers={'WWW-Authenticate': 'Basic'},
         )
 
     return db_user.id

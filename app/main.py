@@ -12,6 +12,7 @@ from app import schemas
 from app.database import engine
 from app.database import get_db
 from app.security import authenticate
+from app.utils import is_deposited_right_amount
 
 models.Base.metadata.create_all(bind=engine)
 app = FastAPI()
@@ -23,7 +24,7 @@ def read_users(
         skip: int = 0,
         limit: int = 100,
         db: Session = Depends(get_db),
-        _logged_in_user_id: int = Depends(authenticate)
+        _=Depends(authenticate)
 ):
     users = crud.get_users(db, skip=skip, limit=limit)
     return users
@@ -33,11 +34,11 @@ def read_users(
 def read_user(
         user_id: int,
         db: Session = Depends(get_db),
-        _logged_in_user_id: int = Depends(authenticate),
+        _=Depends(authenticate),
 ):
     db_user = crud.get_user(db, user_id=user_id)
     if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail='User not found')
     return db_user
 
 
@@ -57,11 +58,11 @@ def update_user(
         user_id: int,
         user: schemas.User,
         db: Session = Depends(get_db),
-        _logged_in_user_id: int = Depends(authenticate),
+        _=Depends(authenticate),
 ):
     db_user = crud.get_user(db, user_id=user_id)
     if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail='User not found')
     return crud.update_user(db, user_id, user)
 
 
@@ -69,11 +70,11 @@ def update_user(
 def delete_user(
         user_id: int,
         db: Session = Depends(get_db),
-        _logged_in_user_id: int = Depends(authenticate),
+        _=Depends(authenticate),
 ):
     db_user = crud.get_user(db, user_id=user_id)
     if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail='User not found')
 
     db.delete(db_user)
     db.commit()
@@ -82,16 +83,23 @@ def delete_user(
 
 # Product
 @app.get('/products/', response_model=List[schemas.Product])
-def read_products(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def read_products(
+        skip: int = 0,
+        limit: int = 100,
+        db: Session = Depends(get_db)
+):
     products = crud.get_products(db, skip=skip, limit=limit)
     return products
 
 
 @app.get('/products/{product_id}', response_model=schemas.Product)
-def read_product(product_id: int, db: Session = Depends(get_db)):
+def read_product(
+        product_id: int,
+        db: Session = Depends(get_db),
+):
     db_product = crud.get_product(db, product_id=product_id)
     if db_product is None:
-        raise HTTPException(status_code=404, detail="Product not found")
+        raise HTTPException(status_code=404, detail='Product not found')
     return db_product
 
 
@@ -103,9 +111,8 @@ def create_product(
 ):
     if product.seller_id != logged_in_user_id:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_403_FORBIDDEN,
             detail='Only the seller who created the product is allowed',
-            headers={'WWW-Authenticate': 'Basic'},
         )
     db_product = crud.get_product_by_name(db, product_name=product.product_name)
     if db_product:
@@ -122,13 +129,12 @@ def update_product(
 ):
     if product.seller_id != logged_in_user_id:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_403_FORBIDDEN,
             detail='Only the seller who created the product is allowed',
-            headers={'WWW-Authenticate': 'Basic'},
         )
     db_product = crud.get_product(db, product_id=product_id)
     if db_product is None:
-        raise HTTPException(status_code=404, detail="Product not found")
+        raise HTTPException(status_code=404, detail='Product not found')
     return crud.update_product(db, product_id, product)
 
 
@@ -141,13 +147,38 @@ def delete_product(
     db_product = crud.get_product(db, product_id)
     if db_product.seller_id != logged_in_user_id:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_403_FORBIDDEN,
             detail='Only the seller who created the product is allowed',
-            headers={'WWW-Authenticate': 'Basic'},
         )
     if db_product is None:
-        raise HTTPException(status_code=404, detail="Product not found")
+        raise HTTPException(status_code=404, detail='Product not found')
 
     db.delete(db_product)
     db.commit()
     return db_product
+
+
+@app.put('/deposit/{money}', response_model=schemas.User)
+def deposit(
+        money: int,
+        db: Session = Depends(get_db),
+        logged_in_user_id=Depends(authenticate),
+):
+    # make sure user is a buyer
+    db_user = crud.get_user(db, logged_in_user_id)
+    if db_user.role != 'buyer':
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='Only buyers are allowed',
+        )
+
+    # make sure right amount is deposited
+    if not is_deposited_right_amount(money):
+        raise HTTPException(status_code=400,
+                            detail='Please deposit only 5, 10, 20, 50 or 100 cent coins')
+
+    # update user's deposit
+    db_user.deposit += money
+    crud.update_user(db, db_user.id, db_user)
+
+    return db_user
