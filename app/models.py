@@ -15,6 +15,8 @@ class User(Base):
     deposit = Column(Integer)
     role = Column(String)
 
+    products = relationship('Product', back_populates='seller')
+
 
 class Product(Base):
     __tablename__ = 'product'
@@ -24,4 +26,4 @@ class Product(Base):
     product_name = Column(String)
     seller_id = Column(Integer, ForeignKey('user.id'))
 
-    seller = relationship('User', back_populates='product')
+    seller = relationship('User', back_populates='products')
