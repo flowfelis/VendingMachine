@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from . import models
-from . import schemas
+from app import models
+from app import schemas
 from utils import hash_password
 
 

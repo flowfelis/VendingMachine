@@ -4,7 +4,7 @@ from sqlalchemy import String
 from sqlalchemy import Integer
 from sqlalchemy.orm import relationship
 
-from .database import Base
+from app.database import Base
 
 
 class User(Base):
