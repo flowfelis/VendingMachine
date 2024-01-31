@@ -50,8 +50,12 @@ def delete_user(db: Session, user_id: int):
 
 
 # Product
-def get_product(db: Session, user_id: int):
-    return db.query(models.Product).filter(models.Product.id == user_id).first()
+def get_product(db: Session, product_id: int):
+    return db.query(models.Product).filter(models.Product.id == product_id).first()
+
+
+def get_product_by_name(db: Session, product_name: str):
+    return db.query(models.Product).filter(models.Product.product_name == product_name).first()
 
 
 def get_products(db: Session, skip: int = 0, limit: int = 100):
