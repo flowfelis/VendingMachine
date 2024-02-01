@@ -157,7 +157,7 @@ def delete_product(
     return db_product
 
 
-@app.put('/deposit/{money}', response_model=schemas.User)
+@app.post('/deposit/{money}', response_model=schemas.User)
 def deposit(
         money: int,
         db: Session = Depends(get_db),
@@ -177,7 +177,7 @@ def deposit(
     return db_user
 
 
-@app.put('/buy/{product_id}/{buy_amount}', response_model=schemas.Buy)
+@app.post('/buy/{product_id}/{buy_amount}', response_model=schemas.Buy)
 def buy(
         product_id: int,
         buy_amount: int,
@@ -209,7 +209,7 @@ def buy(
     )
 
 
-@app.put('/reset', response_model=schemas.User)
+@app.post('/reset', response_model=schemas.User)
 def reset(
         db: Session = Depends(get_db),
         logged_in_user_id=Depends(authenticate),

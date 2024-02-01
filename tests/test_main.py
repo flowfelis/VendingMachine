@@ -15,7 +15,7 @@ def test_deposit_success(client, db, money):
     db.add(user)
     db.commit()
 
-    response = client.put(f'/deposit/{money}')
+    response = client.post(f'/deposit/{money}')
     assert response.status_code == 200
     assert response.json() == {'username': 'Ali', 'deposit': money, 'role': 'buyer'}
 
@@ -33,7 +33,7 @@ def test_deposit_fail_wrong_money(client, db):
     db.add(user)
     db.commit()
 
-    response = client.put(f'/deposit/3')
+    response = client.post(f'/deposit/3')
     assert response.status_code == 400
 
 
@@ -47,7 +47,7 @@ def test_deposit_fail_wrong_role(client, db):
     db.add(user)
     db.commit()
 
-    response = client.put(f'/deposit/3')
+    response = client.post(f'/deposit/3')
     assert response.status_code == 403
 
 
@@ -69,7 +69,7 @@ def test_buy_success(client, db):
     db.add(product)
     db.commit()
 
-    response = client.put('/buy/1/2')
+    response = client.post('/buy/1/2')
     assert response.status_code == 200
     assert response.json() == {'total_spent': 40, 'product_name': 'Chips', 'change': 0}
 
@@ -100,6 +100,6 @@ def test_buy_fail_user_dont_have_enough_money(client, db):
     db.add(product)
     db.commit()
 
-    response = client.put('/buy/1/3')
+    response = client.post('/buy/1/3')
     assert response.status_code == 400
     assert response.json() == {'detail': 'User does not have enough money'}
