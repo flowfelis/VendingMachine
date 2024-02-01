@@ -39,3 +39,12 @@ class Product(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class Buy(BaseModel):
+    """
+    Schema for the buy endpoint
+    """
+    total_spent: int = Field(examples=[60])
+    product_name: str = Field(examples=['Cola'])
+    change: int = Field(examples=[10])

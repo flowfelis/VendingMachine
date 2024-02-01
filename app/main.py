@@ -12,7 +12,7 @@ from app import schemas
 from app.database import engine
 from app.database import get_db
 from app.security import authenticate
-from app.utils import is_deposited_right_amount
+from app import validation
 
 models.Base.metadata.create_all(bind=engine)
 app = FastAPI()
@@ -150,8 +150,7 @@ def delete_product(
             status_code=status.HTTP_403_FORBIDDEN,
             detail='Only the seller who created the product is allowed',
         )
-    if db_product is None:
-        raise HTTPException(status_code=404, detail='Product not found')
+    validation.product_exists(db_product)
 
     db.delete(db_product)
     db.commit()
@@ -166,19 +165,59 @@ def deposit(
 ):
     # make sure user is a buyer
     db_user = crud.get_user(db, logged_in_user_id)
-    if db_user.role != 'buyer':
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail='Only buyers are allowed',
-        )
+    validation.is_buyer(db_user.role)
 
     # make sure right amount is deposited
-    if not is_deposited_right_amount(money):
-        raise HTTPException(status_code=400,
-                            detail='Please deposit only 5, 10, 20, 50 or 100 cent coins')
+    validation.is_deposited_right_amount(money)
 
     # update user's deposit
     db_user.deposit += money
+    crud.update_user(db, db_user.id, db_user)
+
+    return db_user
+
+
+@app.put('/buy/{product_id}/{amount}', response_model=schemas.Buy)
+def buy(
+        product_id: int,
+        buy_amount: int,
+        db: Session = Depends(get_db),
+        logged_in_user_id=Depends(authenticate),
+):
+    db_user = crud.get_user(db, logged_in_user_id)
+    db_product = crud.get_product(db, product_id)
+
+    validation.is_buyer(db_user.role)
+    validation.product_exists(db_product)
+    validation.enough_product(db_product, buy_amount)
+    total_cost = db_product.cost * buy_amount
+    validation.user_has_enough_money(db_user, total_cost)
+
+    db_product.amount_available -= buy_amount
+    crud.update_product(db, product_id, db_product)
+
+    db_user.deposit -= total_cost
+    crud.update_user(db, db_user.id, db_user)
+
+    change = db_user.deposit - total_cost
+
+    return schemas.Buy(
+        total_spent=total_cost,
+        product_name=db_product.product_name,
+        change=change,
+    )
+
+
+@app.put('/reset', response_model=schemas.User)
+def reset(
+        db: Session = Depends(get_db),
+        logged_in_user_id=Depends(authenticate),
+):
+    db_user = crud.get_user(db, logged_in_user_id)
+    if db_user.deposit == 0:
+        raise HTTPException(status_code=400, detail='Deposit is already 0')
+
+    db_user.deposit = 0
     crud.update_user(db, db_user.id, db_user)
 
     return db_user
