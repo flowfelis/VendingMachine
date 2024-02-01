@@ -23,7 +23,7 @@ def test_deposit_success(client, db, money):
     assert db_user.deposit == money
 
 
-def test_deposit_wrong_money(client, db):
+def test_deposit_fail_wrong_money(client, db):
     user = models.User(
         username='Ali',
         hashed_password='abc123',
@@ -80,3 +80,26 @@ def test_buy_success(client, db):
     # product amount available should be 2
     db_product = crud.get_product(db, 1)
     assert db_product.amount_available == 2
+
+
+def test_buy_fail_user_dont_have_enough_money(client, db):
+    user = models.User(
+        username='Ali',
+        hashed_password='abc123',
+        deposit=40,
+        role='buyer',
+    )
+    db.add(user)
+
+    product = models.Product(
+        amount_available=4,
+        cost=20,
+        product_name='Chips',
+        seller_id=1,
+    )
+    db.add(product)
+    db.commit()
+
+    response = client.put('/buy/1/3')
+    assert response.status_code == 400
+    assert response.json() == {'detail': 'User does not have enough money'}
