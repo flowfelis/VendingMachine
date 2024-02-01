@@ -8,7 +8,7 @@ class UserBase(BaseModel):
     """
     username: str = Field(examples=['TylerDurden'])
     deposit: int = Field(examples=[50])
-    role: str = Field(examples=['seller', 'buyer'])  # TODO: Make another Model or Enum
+    role: str = Field(examples=['seller', 'buyer'])
 
 
 class UserCreate(UserBase):
