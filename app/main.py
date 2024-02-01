@@ -177,7 +177,7 @@ def deposit(
     return db_user
 
 
-@app.put('/buy/{product_id}/{amount}', response_model=schemas.Buy)
+@app.put('/buy/{product_id}/{buy_amount}', response_model=schemas.Buy)
 def buy(
         product_id: int,
         buy_amount: int,

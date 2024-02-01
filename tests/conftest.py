@@ -30,7 +30,7 @@ def session_fixture():
 @pytest.fixture(name="client")
 def client_fixture(db: Session):
     app.dependency_overrides[get_db] = lambda: db
-    app.dependency_overrides[authenticate] = lambda: None
+    app.dependency_overrides[authenticate] = lambda: 1
     client = TestClient(app)
     yield client
     app.dependency_overrides.clear()
