@@ -190,16 +190,17 @@ def buy(
     validation.is_buyer(db_user.role)
     validation.product_exists(db_product)
     validation.enough_product(db_product, buy_amount)
+
     total_cost = db_product.cost * buy_amount
     validation.user_has_enough_money(db_user, total_cost)
+
+    change = db_user.deposit - total_cost
 
     db_product.amount_available -= buy_amount
     crud.update_product(db, product_id, db_product)
 
     db_user.deposit -= total_cost
     crud.update_user(db, db_user.id, db_user)
-
-    change = db_user.deposit - total_cost
 
     return schemas.Buy(
         total_spent=total_cost,
