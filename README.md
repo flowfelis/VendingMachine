@@ -21,3 +21,4 @@ Python 3.9+
 * go to *localhost:8000/docs* on your browser
 * You can see the API documentation
 * You can fire requests and try out endpoints
+* Also for detailed API documentation, visit *localhost:8000/redoc*
