@@ -22,7 +22,18 @@ def is_buyer(role: str):
     if role != 'buyer':
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail='Only buyers are allowed',
+            detail='Only buyers can do this operation',
+        )
+
+
+def is_seller(role: str):
+    """
+    Make sure the user is a seller, if not raise an exception
+    """
+    if role != 'seller':
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='Only sellers can do this operation',
         )
 
 

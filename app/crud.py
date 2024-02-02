@@ -62,12 +62,12 @@ def get_products(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Product).offset(skip).limit(limit).all()
 
 
-def create_product(db: Session, product: schemas.Product):
+def create_product(db: Session, product: schemas.ProductCreate, seller_id: int):
     db_product = models.Product(
         amount_available=product.amount_available,
         cost=product.cost,
         product_name=product.product_name,
-        seller_id=product.seller_id,
+        seller_id=seller_id,
     )
     db.add(db_product)
     db.commit()
@@ -75,13 +75,12 @@ def create_product(db: Session, product: schemas.Product):
     return db_product
 
 
-def update_product(db: Session, product_id: int, user: schemas.Product):
+def update_product(db: Session, product_id: int, product: schemas.ProductCreate):
     db_product = get_product(db, product_id)
 
-    db_product.amount_available = user.amount_available
-    db_product.cost = user.cost
-    db_product.product_name = user.product_name
-    db_product.seller_id = user.seller_id
+    db_product.amount_available = product.amount_available
+    db_product.cost = product.cost
+    db_product.product_name = product.product_name
 
     db.add(db_product)
     db.commit()

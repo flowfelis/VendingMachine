@@ -30,13 +30,20 @@ class User(UserBase):
         orm_mode = True
 
 
-class Product(BaseModel):
+class BaseProduct(BaseModel):
     """
     Product schema for reading, returning and creating
     """
     amount_available: int = Field(examples=[5])
     cost: int = Field(examples=[5, 10, 15, 20, 50, 100])
     product_name: str = Field(examples=['Cola'])
+
+
+class ProductCreate(BaseProduct):
+    pass
+
+
+class Product(BaseProduct):
     seller_id: int = Field(examples=[2])
 
     class Config:

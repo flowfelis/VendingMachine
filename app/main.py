@@ -106,29 +106,28 @@ def read_product(
 
 @app.post('/products/', response_model=schemas.Product)
 def create_product(
-        product: schemas.Product,
+        product: schemas.ProductCreate,
         db: Session = Depends(get_db),
         logged_in_user_id: int = Depends(authenticate),
 ):
-    if product.seller_id != logged_in_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail='Only the seller who created the product is allowed',
-        )
+    db_user = crud.get_user(db, logged_in_user_id)
+    validation.is_seller(db_user.role)
+
     db_product = crud.get_product_by_name(db, product_name=product.product_name)
     if db_product:
         raise HTTPException(status_code=400, detail='Product already exists')
-    return crud.create_product(db=db, product=product)
+    return crud.create_product(db=db, product=product, seller_id=logged_in_user_id)
 
 
 @app.put('/products/{product_id}', response_model=schemas.Product)
 def update_product(
         product_id: int,
-        product: schemas.Product,
+        product: schemas.ProductCreate,
         db: Session = Depends(get_db),
         logged_in_user_id: int = Depends(authenticate)
 ):
-    if product.seller_id != logged_in_user_id:
+    db_product = crud.get_product(db, product_id)
+    if db_product.seller_id != logged_in_user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail='Only the seller who created the product is allowed',
