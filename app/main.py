@@ -13,6 +13,7 @@ from app.database import engine
 from app.database import get_db
 from app.security import authenticate
 from app import validation
+from app.utils import calculate_change
 
 models.Base.metadata.create_all(bind=engine)
 app = FastAPI()
@@ -205,7 +206,7 @@ def buy(
     return schemas.Buy(
         total_spent=total_cost,
         product_name=db_product.product_name,
-        change=change,
+        change=calculate_change(change),
     )
 
 

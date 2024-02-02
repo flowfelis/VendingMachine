@@ -1,3 +1,5 @@
+from typing import List
+
 from pydantic import BaseModel
 from pydantic import Field
 
@@ -47,4 +49,4 @@ class Buy(BaseModel):
     """
     total_spent: int = Field(examples=[60])
     product_name: str = Field(examples=['Cola'])
-    change: int = Field(examples=[10])
+    change: List = Field(examples=[50, 20, 5])

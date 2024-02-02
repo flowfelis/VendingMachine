@@ -71,7 +71,7 @@ def test_buy_success(client, db):
 
     response = client.post('/buy/1/2')
     assert response.status_code == 200
-    assert response.json() == {'total_spent': 40, 'product_name': 'Chips', 'change': 0}
+    assert response.json() == {'total_spent': 40, 'product_name': 'Chips', 'change': []}
 
     # user should have 0 deposit
     db_user = crud.get_user(db, 1)
